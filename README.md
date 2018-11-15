@@ -8,3 +8,4 @@ This project is based on the article: https://arxiv.org/ftp/arxiv/papers/1710/17
 
 Implementation in Opencv-python 3.6
 
+![Line segmentation example](http://h-jain.com/wp-content/uploads/2018/11/lineseg.gif)
