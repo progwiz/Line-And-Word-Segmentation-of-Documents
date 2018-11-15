@@ -1,4 +1,4 @@
-#line segmenter using image morphology, feature extraction, nearest neighbor classifiction and GMMs
+#Line segmentation procedures.
 
 import numpy as np
 import matplotlib as mpl
@@ -10,11 +10,12 @@ import extractor
 from sklearn import mixture
 import scipy.ndimage
 
-
+# perpendicular distance from point to line
 def dist_line_point(point,coeffs):
     a,b,c=coeffs
     return abs(point[0]*a+point[1]*b+c)/math.sqrt(a**2+b**2)
 
+# class for separated lines
 class Lin2:
     def __init__(self,item,clines=None):
         self.heights=[]
@@ -39,7 +40,8 @@ class Lin2:
                     for line_no,line in enumerate(lines):
                         if comp_no in line.lorw+line.puncts:
                             self.break_component3(comp_no,[self],ret=line_no)
-        
+    
+    # handle breaking of component that lies across 2 lines
     def break_component3(self,comp_no,clines,ret=None):
         comp=global_vars.comp_dict[comp_no]
         for line in clines:
@@ -130,7 +132,7 @@ class Lin2:
         return False
         
     
-                            
+    # creates image used for debugging. 
     def calculate_median(self,typ=False):
         if typ==True:
             self.update_img_stats(typ=True)
@@ -184,7 +186,8 @@ class Lin2:
         elif len(median_line)>self.img.shape[1]:
             median_line=median_line[0:self.img.shape[1]]
         self.median_line= median_line
-        
+    
+    # add new connected component to line
     def add_lorw(self,item,clines=None,inspect=True):
         if inspect:
             if clines!=None:
@@ -205,6 +208,7 @@ class Lin2:
         self.update_regressor2()
     
     
+    # add punctuation mark to line.
     def add_puncts(self,item):
         self.puncts.append(item)
         comp=global_vars.comp_dict[item]
@@ -212,13 +216,15 @@ class Lin2:
             indices=[item_no for item_no,item in enumerate((np.transpose(comp.img))[column_no]) if np.sum(item)]
             if len(indices):
                 self.heights.append(max(indices)-min(indices))
-        
+    
+    # delete CC from line.
     def delete_item(self,item):
         if item in self.lorw:
             self.lorw.remove(item)
         elif item in self.puncts:
             self.puncts.remove(item)
     
+    # update image stats after changes are made.
     def update_img_stats(self,typ=False):
         points=[]
         if typ==False:
@@ -233,7 +239,8 @@ class Lin2:
         self.left=min(points_zip[1])
         self.right=max(points_zip[1])
         self.img=global_vars.build_img(points)
-            
+    
+    # update regression line for line
     def update_regressor2(self):
         if len(self.lorw)==1:    self.max_space=global_vars.comp_dict[self.lorw[0]].width*4
         else:   self.max_space=max([abs(global_vars.comp_dict[self.lorw[comp_no+1]].centroid[0]-global_vars.comp_dict[comp].centroid[0]) for comp_no,comp in enumerate(self.lorw[0:len(self.lorw)-1])])*4
@@ -260,13 +267,15 @@ class Lin2:
             mean_hts=sorted(list(g.means_))
             self.mean_ht=mean_hts[len(mean_hts)-1]
             self.center_ht=mean_hts[min([1,len(mean_hts)-1])]
-        
+
+# helper function        
 def sort_keys():
     temp_dict=sorted(global_vars.comp_dict.items(),key=lambda x:x[1].left)
     temp_dict={k:v for k,v in temp_dict}
     global keys
     keys=list(temp_dict.keys())
 
+# actual line segmentation function
 def segment_lines(img_copy):
     global global_count
     global_count=0
@@ -399,7 +408,8 @@ def func(x,a,b,c,d,e):
 
 def gauss(x, A,mu,sigma):
     return A*np.exp(-(x-mu)**2/(2*sigma**2))
-            
+
+# print lines for debugging            
 def print_lines2(lines):
     lines_fig=mpl.pyplot.figure(global_vars.figno)
     for line_no,line in enumerate(lines):
@@ -410,6 +420,7 @@ def print_lines2(lines):
         mpl.pyplot.imshow(line.img,'gray')
     global_vars.figno+=1
 
+# combine lines incorrectly segmented.
 def combine_lines3(lines):
     while True:
         prev_lines=lines.copy()

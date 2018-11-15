@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import math
 
+# noise removal function
 def clean_img(img_copy):
     img=img_copy.copy()
     lcount,labels,stats,centroids=cv2.connectedComponentsWithStats(img.astype(np.uint8),8,cv2.CV_32S)
@@ -17,7 +18,7 @@ def clean_img(img_copy):
             img[point]=0
     return img
 
-#find location of a particular point after rotation
+#find location of a particular point after rotation. Helper function for skew correction
 def rotate_point(point,angle,pivot=(0,0),scale=1.0,trans=[0,0]):
     point=list(point)
     point[0]=point[0]+trans[0]
@@ -29,7 +30,7 @@ def rotate_point(point,angle,pivot=(0,0),scale=1.0,trans=[0,0]):
     return x+pivot[0],y+pivot[1]
 
 
-#rotate an image by the angle specified in degrees about a pivot point
+#rotate an image by the angle specified in degrees about a pivot point. Helper function for skew correction
 def rotate_bound(image, angle, scale=1.0, pivot=(0,0), reshape=True):
     (h, w) = image.shape[:2]
     angle_rad=angle*math.pi/180
@@ -60,6 +61,7 @@ def rotate_bound(image, angle, scale=1.0, pivot=(0,0), reshape=True):
         M = cv2.getRotationMatrix2D(pivot, -angle, 1.0)
     return cv2.warpAffine(image, M, (nW, nH),flags=cv2.INTER_CUBIC),[x_min,y_min]
 
+# the actual skew correction function
 def rotate2(img_copy,r=[-45,45]):
     img=img_copy.copy()
     diff_set=[]
@@ -70,7 +72,7 @@ def rotate2(img_copy,r=[-45,45]):
     optimal_set=max(diff_set,key=lambda x:np.std(x[2]))
     return optimal_set
 
-
+# binarization function
 def binarize(img):
     def calc_thresh_stats(img):
         img=1-img

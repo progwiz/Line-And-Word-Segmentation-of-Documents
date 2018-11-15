@@ -1,3 +1,5 @@
+# feature extractor
+
 import numpy as np
 import matplotlib as mpl
 import global_vars
@@ -12,7 +14,7 @@ def contains(small, big):
             return i, i + len(small) - 1
     return False
 
-
+#  returns a list of junctions in a skeleton, a list of end points in skeleton.
 def special_points(skeleton_copy):
     img=skeleton_copy.copy()
     img=global_vars.add_borders(img)
@@ -37,6 +39,7 @@ def special_points(skeleton_copy):
     img=global_vars.delete_borders(img)
     return junctions,end_points
     
+# return neighbor locations
 def neighbors2(node,img=None):
         if img==None:    img=global_vars.global_skel      
         nbrs=[]
@@ -47,6 +50,7 @@ def neighbors2(node,img=None):
             if img[temp_x,temp_y]: nbrs.append((temp_x,temp_y))
         return nbrs
 
+# Astar function
 class graph(AStar):
     def __init__(self, img):
         self.lines =  img
@@ -71,7 +75,7 @@ class graph(AStar):
             if img[temp_x,temp_y]: nbrs.append((temp_x,temp_y))
         return nbrs
 
-
+# class for binary connected components.
 class Component:
     def __init__(self,strokes=None,left=None,right=None,top=None,bottom=None,bfs_img=None,img=None,sp=None,centroid=None,rep=None,r_nbr=None,l_nbr=None):
         self.strokes=strokes
@@ -87,6 +91,7 @@ class Component:
         self.r_nbr=r_nbr
         self.l_nbr=l_nbr
 
+# class for strokes in skeleton.
 class Stroke:
     def __init__(self,stroke_type=None,stroke_points=None,centroid_x=None,centroid_y=None,std_x=None,std_y=None,shape_ratio=None,left=None,right=None,top=None,bottom=None,size=None,pixelspercol=None,img=0):
         self.stroke_type=stroke_type
@@ -113,7 +118,7 @@ class Stroke:
         print ("top,bottom:",self.top,self.bottom)
         print ("size:",self.size)
         
-    
+# returns neighbors using a queue.
 def neighbors(x,y,img,visit,queue):
     nbrs=[]
     for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1)]:
@@ -122,6 +127,8 @@ def neighbors(x,y,img,visit,queue):
         if img[temp_x,temp_y] and not(visit[temp_x,temp_y]) and [temp_x,temp_y] not in queue: nbrs.append([temp_x,temp_y])
     return nbrs
 
+
+# creates a stroke object starting from a point.
 def build_stroke(x,y,img,visit,maxima,minima):
     stroke_direction=[0,0]
     stack=deque()
@@ -157,7 +164,8 @@ def build_stroke(x,y,img,visit,maxima,minima):
         stack.extend(nbrs)
     #print (stroke_direction)
     return Stroke(stroke_direction,stroke_points),nbrs,visit,maxima,minima
-        
+
+# improved build_stroke function
 def build_stroke2(x,y,img,visit,maxima,minima,junctions,queue):
     stroke_direction=[0,0]
     stack=deque()
@@ -210,7 +218,7 @@ def build_stroke2(x,y,img,visit,maxima,minima,junctions,queue):
     #print (stroke_direction)
     return Stroke(stroke_direction,stroke_points),visit,maxima,minima,queue
 
-            
+# main feature extraction function
 def extract(img_copy):
     img=img_copy.copy()
     junctions,end_points=special_points(img)
@@ -237,6 +245,7 @@ def extract(img_copy):
     img=global_vars.delete_borders(img)
     return comps,maxima,minima,junctions,end_points                        
 
+# used in stroke class
 def calculate_stroke_stats(stroke):
     stroke.stroke_type=global_vars.stypes.index(stroke.stroke_type)+1
     [x_list,y_list]=list(zip(*stroke.stroke_points))
@@ -253,7 +262,7 @@ def calculate_stroke_stats(stroke):
     stroke.shape_ratio=(stroke.right-stroke.left+1)/(stroke.bottom-stroke.top+1)
     return stroke
     
-
+# used in component class
 def calculate_comp_stats(comps):
     global_vars.init_stypes()
     for comp_no,comp in enumerate(comps):
@@ -271,6 +280,8 @@ def calculate_comp_stats(comps):
     comps=[comp for comp in comps if comp!=None]
     return comps
 
+
+# creates an image for debugging purposes.
 def build_median_img(comps):
     for comp_no,comp in enumerate(comps):
         #print (comp,comp_no,len(comps))

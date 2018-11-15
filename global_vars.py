@@ -1,3 +1,4 @@
+# global variables for the whole preprocessor
 import numpy as np
 import cv2
 import skeletonize
@@ -5,11 +6,11 @@ import extractor
 import scipy
 import math
 
-
+# variable for binary image shape
 def init_shape(img):
     global shape
     shape=img.shape
-    
+
 def init():
     global start
     start=0
@@ -17,7 +18,8 @@ def init():
 def init_graph(gr):
     global global_graph
     global_graph=gr
-    
+
+# used for img display using matplotlib
 def init_figno(a):
     global figno
     figno=a
@@ -25,11 +27,13 @@ def init_figno(a):
 def init_skel(skeleton):
     global global_skel
     global_skel=skeleton
-    
+
+# stroke types    
 def init_stypes():
     global stypes
     stypes=[[0,-1],[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,0]]
-    
+
+# create binary image from point cloud
 def build_img(points,stats=None,borders=True):
     if stats==None:
         left=min(points,key=lambda x:x[1])[1]
@@ -43,12 +47,14 @@ def build_img(points,stats=None,borders=True):
     #if borders==True:   img=add_borders(img)
     return img
 
+# delete borders of image. Helper function.
 def delete_borders(img_copy):
     img=img_copy.copy()
     img=np.delete(img,[img.shape[0]-1,0],axis=0)
     img=np.delete(img,[img.shape[1]-1,0],axis=1)
     return img
-    
+
+# add a layer of pixels to each side of image. Helper functon.
 def add_borders(img_copy):
     img=img_copy.copy()
     img=np.append(img,np.zeros((img.shape[0],1),dtype=np.uint8),axis=1)
@@ -60,21 +66,23 @@ def add_borders(img_copy):
 def optimal_angle(ang):
     global angle
     angle=math.radians(-ang)
-    
+
+# creates skeleton using skeletonize.py
 def init_skeleton(img_copy):
-        img=img_copy.copy()
-        img=skeletonize.smooth_contours(img)
-        skeleton=skeletonize.skeletonizer(img)
-        skeleton=skeletonize.smooth_skeleton(skeleton)
-        skeleton=skeletonize.skeletonizer(skeleton)
-        return skeleton
+    img=img_copy.copy()
+    img=skeletonize.smooth_contours(img)
+    skeleton=skeletonize.skeletonizer(img)
+    skeleton=skeletonize.smooth_skeleton(skeleton)
+    skeleton=skeletonize.skeletonizer(skeleton)
+    return skeleton
 
-
+# fill holes in binary components.
 def fill_holes(img_copy):
     img=img_copy.copy()
     img=scipy.ndimage.morphology.binary_fill_holes(img)
     return img
 
+# Helper function for line segmentation procedure.
 def init_type(comp):
     if len(comp.strokes)<4:
         return 0
@@ -83,6 +91,7 @@ def init_type(comp):
     elif 5<=len(comp.strokes)<10:   return 2
     else: return 3
 
+# Holds various parameters for a binary onnected component.
 class comp:
     
     def __init__(self,stat=None,centroid=None,points=None,line_no=None):
@@ -102,11 +111,13 @@ class comp:
         self.features2=extractor.calculate_comp_stats(self.features2)       
         self.type=init_type(self.features2[0])
         self.init_max_points()
-        
+    
+    # convex hull of point cloud.
     def init_convexhull(self):
         hull=scipy.spatial.ConvexHull(self.points)
         self.hull_points=[point for point_no,point in enumerate(hull.points) if point_no in hull.vertices]
 
+    # group points by x value. Used only for displaying purposes.
     def init_max_points(self):
         self.left_points=[]
         self.right_points=[]
@@ -120,7 +131,7 @@ def init_used_keys():
     global used
     used=[]
 
-
+# initializes dict of binary connected components with their stats.
 def init_comps(output):
     lcount,labels,stats,centroids=output
     points_arr=[[]for i in range(lcount)]

@@ -4,6 +4,7 @@ import scipy
 from sklearn import mixture
 import numpy as np 
 
+# perform word segmentation
 def segment_words(lines):
     words=[]
 

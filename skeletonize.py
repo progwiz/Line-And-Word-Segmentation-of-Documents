@@ -3,6 +3,7 @@ import cv2
 import global_vars
 import numpy as np
 
+# helper function for smooth_skeleton
 def neighbors_x(node,img):
     nbrs=[]
     (x,y)=node
@@ -12,6 +13,7 @@ def neighbors_x(node,img):
         if img[temp_x,temp_y]: nbrs.append((temp_x,temp_y))
     return nbrs
 
+# helper function for smooth_skeleton
 def neighbors_y(node,img):
     nbrs=[]
     (x,y)=node
@@ -21,7 +23,7 @@ def neighbors_y(node,img):
         if img[temp_x,temp_y]: nbrs.append((temp_x,temp_y))
     return nbrs
 
-
+# perform smoothening of skeleton 
 def smooth_skeleton(skeleton_copy):
     img=skeleton_copy.copy()
     img=global_vars.add_borders(img)
@@ -116,7 +118,7 @@ def smooth_skeleton(skeleton_copy):
     img=global_vars.delete_borders(img)
     return img
 
-
+# smooth the boundaries of skeleton
 def smooth_contours(img_copy):
     img=img_copy.copy()
     
@@ -148,13 +150,14 @@ def smooth_contours(img_copy):
     
     return img
 
+# find neighbors of a pixel
 def neighbours(x, y,a):
     p = []
     for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1)]:
         p.append(a[x+dx,y+dy])
     return p
 
-
+# perform morphological thinning on binary image
 def skeletonizer(image):
     image2=image.copy()
     image2=global_vars.add_borders(image2)
